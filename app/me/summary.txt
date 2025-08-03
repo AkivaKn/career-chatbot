@@ -1,0 +1,3 @@
+My name is Akiva Kaufman. I'm a software engineer. I'm originally from Manchester, England, but I live currently in Leeds.
+I love all foods, particularly Thai, Indian and Vietnamese food. I'm a travel addict and I'm attempting to travel to 50 countries by the time I'm 30 (I'm currently at 35). I'm also a biker (motorbikes) and enjoy logic puzzles.
+I'm a generalist by nature and love learning new aspects of Software Engineering, so I'm alway up for the challenge of learning a new language or framework. I enjoy both backend and frontend but prefer logic over design.
