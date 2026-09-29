@@ -250,7 +250,30 @@ If one of your tools fails, don't claim the action succeeded - apologise and ask
 
 
 
+CSS = """
+.gradio-container { max-width: 100% !important; padding: 0 !important; box-sizing: border-box !important; }
+footer { display: none !important; }
+
+/* title: responsive sizes to match the site */
+.gradio-container h1 { font-size: 1.25rem !important; font-weight: 700 !important; margin: 0.5rem 0 0.25rem !important; }
+@media (min-width: 768px) {
+  .gradio-container h1 { font-size: 1.5rem !important; }
+}
+
+/* chat panel + input box: square black borders to match the site */
+#chatbot { border: 2px solid #111827 !important; border-radius: 0 !important; }
+#chat-input { border: 2px solid #111827 !important; border-radius: 0 !important; }
+#chat-input textarea { border: none !important; box-shadow: none !important; }
+"""
+
 if __name__ == "__main__":
     me = Me()
-    gr.ChatInterface(me.chat, type="messages").launch()
+    gr.ChatInterface(
+        me.chat,
+        type="messages",
+        chatbot=gr.Chatbot(elem_id="chatbot", type="messages", height=400, label="Chat"),
+        textbox=gr.Textbox(elem_id="chat-input", placeholder="Ask me a question..."),
+        title="Ask me anything",
+        css=CSS,
+    ).launch()
     
