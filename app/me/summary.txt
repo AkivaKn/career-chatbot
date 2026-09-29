@@ -4,6 +4,13 @@ I got into coding in my early twenties. I went to religious schools that didn't 
 
 Most weeks are a mix of features and fixes plus the AI side, which is mostly Python: I build the orchestration around our models, wiring up prompts with structured outputs and versioned prompt templates, and a lot of the job is evaluating it all - automated output validation, human review, and the occasional A/B comparison before anything ships. We use a mix of model types: large language models through third-party APIs, smaller fine-tuned models we host ourselves, and classification models for narrower jobs.
 
+Projects I've built:
+- Boggle - a real-time multiplayer word game. I wrote the Go (Gin) API with WebSockets and PostgreSQL, and the React, TypeScript and Tailwind frontend. It's live at bogglefe.netlify.app.
+- This career chatbot - Python, Gradio and the Gemini API, with an evaluation loop that checks its own answers before replying.
+- Job Tracker - an Android app (Flutter/Dart) for tracking job applications, published on Google Play.
+- Where to Go - a travel itinerary app (Next.js, Tailwind, Postgres), built as a team project.
+- What You Looking App? - a React Native (TypeScript) augmented-reality app for exploring points of interest, built as a team project.
+
 I'm a generalist by nature and love learning new parts of software engineering, so I'm always up for the challenge of a new language or framework. I enjoy both backend and frontend, but prefer logic over design.
 
 Outside work: I love all foods, particularly Thai, Indian and Vietnamese. I'm a travel addict, attempting to visit 50 countries by the time I'm 30 (currently at 35). I'm a biker and enjoy logic puzzles, and I spent time as President of my university's Food Waste Cafe Society, helping students access affordable and sustainable food.
