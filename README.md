@@ -2,7 +2,7 @@
 
 Career Chatbot is an interactive resume application designed to represent Akiva Kaufman professionally. It uses OpenAI and Gradio to provide a conversational interface for potential clients or employers.
 
-This project was created with the help of the Udemy course by Ed Donner: [The Complete Agentic AI Engineering Course](https://beartech.udemy.com/course/the-complete-agentic-ai-engineering-course/).
+This project was created with the help of the Udemy course by Ed Donner: [The Complete Agentic AI Engineering Course](https://www.udemy.com/course/the-complete-agentic-ai-engineering-course/).
 
 ## Features
 
@@ -75,4 +75,4 @@ For any questions or additional information, feel free to reach out at:
 
 ### Acknowledgements
 
-Special thanks to **Ed Donner** for his Udemy course, [The Complete Agentic AI Engineering Course](https://beartech.udemy.com/course/the-complete-agentic-ai-engineering-course/), which provided valuable guidance in creating this project.
+Special thanks to **Ed Donner** for his Udemy course, [The Complete Agentic AI Engineering Course](https://www.udemy.com/course/the-complete-agentic-ai-engineering-course/), which provided valuable guidance in creating this project.
