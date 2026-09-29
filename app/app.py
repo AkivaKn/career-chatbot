@@ -1,7 +1,8 @@
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import OpenAI, RateLimitError, InternalServerError
 import json
 import os
+import time
 from pypdf import PdfReader
 import gradio as gr
 import smtplib
@@ -11,6 +12,20 @@ from pydantic import BaseModel
 import os
 
 load_dotenv(override=True)
+
+GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+MODEL = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
+EVALUATOR_MODEL = os.getenv("GEMINI_EVALUATOR_MODEL", "gemini-3.1-flash-lite")
+
+def with_retry(fn, attempts=4, base_delay=3):
+    """Retry transient Gemini errors (rate limits / capacity spikes)."""
+    for i in range(attempts):
+        try:
+            return fn()
+        except (RateLimitError, InternalServerError) as e:
+            if "PerDay" in str(e) or i == attempts - 1:
+                raise
+            time.sleep(base_delay * (i + 1))
 
 def push(text, subject):
     sender_email = os.getenv("EMAIL_SENDER")
@@ -125,7 +140,7 @@ class Evaluation(BaseModel):
 class Me:
 
     def __init__(self):
-        self.openai = OpenAI()
+        self.openai = OpenAI(api_key=os.getenv("GOOGLE_API_KEY"), base_url=GEMINI_BASE_URL)
         self.name = "Akiva Kaufman"
         reader = PdfReader("me/linkedin.pdf")
         self.linkedin = ""
@@ -161,7 +176,8 @@ Your responsibility is to represent {self.name} for interactions on the website 
 You are given a summary of {self.name}'s background, resume and LinkedIn profile which you can use to answer questions. \
 Be professional and engaging, as if talking to a potential client or future employer who came across the website, and answer only in British English. \
 If you don't know the answer to any question, use your record_unknown_question tool to record the question that you couldn't answer, even if it's about something trivial or unrelated to career. \
-If the user is engaging in discussion, try to steer them towards getting in touch via email; ask for their email and record it using your record_user_details tool. "
+If the user is engaging in discussion, try to steer them towards getting in touch via email; ask for their email and record it using your record_user_details tool. \
+If one of your tools fails, don't claim the action succeeded - apologise and ask the user to email directly instead. "
 
         system_prompt += f"\n\n## Summary:\n{self.summary}\n\n## LinkedIn Profile:\n{self.linkedin}\n\n## Resume:\n{self.resume}\n\n"
         system_prompt += f"With this context, please chat with the user, always staying in character as {self.name}."
@@ -188,7 +204,7 @@ If the user is engaging in discussion, try to steer them towards getting in touc
     def evaluate(self, reply, message, history) -> Evaluation:
 
         messages = [{"role": "system", "content": self.evaluator_system_prompt()}] + [{"role": "user", "content": self.evaluator_user_prompt(reply, message, history)}]
-        response = self.openai.beta.chat.completions.parse(model="gpt-4.1-mini", messages=messages, response_format=Evaluation)
+        response = with_retry(lambda: self.openai.beta.chat.completions.parse(model=EVALUATOR_MODEL, messages=messages, response_format=Evaluation))
         return response.choices[0].message.parsed
 
     def rerun(self, reply, message, history, feedback):
@@ -196,31 +212,39 @@ If the user is engaging in discussion, try to steer them towards getting in touc
         updated_system_prompt += f"## Your attempted answer:\n{reply}\n\n"
         updated_system_prompt += f"## Reason for rejection:\n{feedback}\n\n"
         messages = [{"role": "system", "content": updated_system_prompt}] + history + [{"role": "user", "content": message}]
-        response = self.openai.chat.completions.create(model="gpt-4o-mini", messages=messages)
+        response = with_retry(lambda: self.openai.chat.completions.create(model=MODEL, messages=messages))
         return response.choices[0].message.content
    
     
     def chat(self, message, history):
+        try:
+            return self._chat(message, history)
+        except Exception as e:
+            print(f"Chat failed: {type(e).__name__} {e}", flush=True)
+            return ("Sorry, I'm having a moment on my end. Please try that again in a few seconds, "
+                    "or reach me directly at akivakaufman@gmail.com.")
+
+    def _chat(self, message, history):
+        user_message = message
         messages = [{"role": "system", "content": self.system_prompt()}] + history + [{"role": "user", "content": message}]
         done = False
         while not done:
-            response = self.openai.chat.completions.create(model="gpt-4o-mini", messages=messages, tools=tools)
+            response = with_retry(lambda: self.openai.chat.completions.create(model=MODEL, messages=messages, tools=tools))
             if response.choices[0].finish_reason=="tool_calls":
-                message = response.choices[0].message
-                tool_calls = message.tool_calls
-                results = self.handle_tool_call(tool_calls)
-                messages.append(message)
+                assistant_message = response.choices[0].message
+                results = self.handle_tool_call(assistant_message.tool_calls)
+                messages.append(assistant_message)
                 messages.extend(results)
             else:
                 done = True
-        reply =response.choices[0].message.content
-        evaluation = self.evaluate(reply, message, history)
+        reply = response.choices[0].message.content
+        evaluation = self.evaluate(reply, user_message, history)
         if evaluation.is_acceptable:
             print("Passed evaluation - returning reply")
         else:
             print("Failed evaluation - retrying")
             print(evaluation.feedback)
-            reply = self.rerun(reply, message, history, evaluation.feedback)       
+            reply = self.rerun(reply, user_message, history, evaluation.feedback)
         return reply
 
 

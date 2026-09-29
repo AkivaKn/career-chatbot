@@ -8,7 +8,7 @@ This project was created with the help of the Udemy course by Ed Donner: [The Co
 
 - Chat interface powered by Gradio.
 - Email notifications for user details and unanswered questions.
-- Integration with OpenAI and Google Gemini APIs.
+- Integration with the Google Gemini API.
 - Processes resume and LinkedIn data for personalised responses.
 
 ## Setup Instructions
